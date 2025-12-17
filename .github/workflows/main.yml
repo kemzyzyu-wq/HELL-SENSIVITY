@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build iOS App Final
 on:
   push:
     branches: [ main ]
@@ -21,8 +21,8 @@ jobs:
       - name: Prepare Project
         run: |
           mkdir -p www
-          cp index.html www/
-          # Jika ada file lain, tambahkan cp di sini
+          # Pastikan file index.html ada
+          if [ -f "index.html" ]; then cp index.html www/; fi
           cordova platform add ios
 
       - name: Build Xcode Compile
@@ -33,9 +33,13 @@ jobs:
       - name: Package to IPA Manual
         run: |
           mkdir -p Payload
-          # Perintah ini akan mencari file .app secara otomatis di folder build
-          APP_PATH=$(find platforms/ios/build -name "*.app" | head -n 1)
-          echo "Ditemukan App di: $APP_PATH"
+          # Mencari file .app di seluruh folder kerja secara mendalam
+          APP_PATH=$(find . -name "*.app" -type d | grep "Debug-iphoneos" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: File .app tidak ditemukan!"
+            exit 1
+          fi
+          echo "Aplikasi ditemukan di: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -r SatanicBooster.ipa Payload
 
