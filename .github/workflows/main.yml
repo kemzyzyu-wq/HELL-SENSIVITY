@@ -1,50 +1,28 @@
-name: Build iOS App Final
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Cordova
-        run: npm install -g cordova
-
-      - name: Prepare Project
-        run: |
-          mkdir -p www
-          # Pastikan file index.html ada
-          if [ -f "index.html" ]; then cp index.html www/; fi
-          cordova platform add ios
-
       - name: Build Xcode Compile
         run: |
-          cd platforms/ios
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build
+          xcodebuild -workspace YourProject.xcworkspace \
+            -scheme YourScheme \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Package to IPA Manual
         run: |
+          # 1. Buat folder Payload
           mkdir -p Payload
-          # Mencari file .app di seluruh folder kerja secara mendalam
-          APP_PATH=$(find . -name "*.app" -type d | grep "Debug-iphoneos" | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            echo "Error: File .app tidak ditemukan!"
-            exit 1
-          fi
-          echo "Aplikasi ditemukan di: $APP_PATH"
-          cp -r "$APP_PATH" Payload/
-          zip -r SatanicBooster.ipa Payload
+          
+          # 2. Cari file .app di dalam folder build yang sudah kita tentukan
+          # Lalu copy ke dalam folder Payload
+          find build/Build/Products/Release-iphoneos -name "*.app" -exec cp -r {} Payload/ \;
+          
+          # 3. Zip menjadi .ipa
+          zip -r YourAppName.ipa Payload
+          
+          echo "Packaging selesai!"
 
       - name: Upload Finished IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Satanic-Booster-IPA
-          path: SatanicBooster.ipa
+          name: ios-app-bundle
+          path: HELL SENSX.ipa
