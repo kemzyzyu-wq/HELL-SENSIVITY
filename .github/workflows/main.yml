@@ -1,4 +1,4 @@
-name: Build iOS IPA
+name: Build iOS App
 on:
   push:
     branches: [ main ]
@@ -22,22 +22,22 @@ jobs:
         run: |
           mkdir -p www
           cp index.html www/
-          # Tambahkan perintah cp untuk gambar jika ada
+          # Tambahkan perintah cp untuk file lain jika ada
           cordova platform add ios
 
-      - name: Bypass Code Signing
+      - name: Build Xcode Compile Only
         run: |
-          cordova prepare ios
-          echo "CODE_SIGNING_ALLOWED=NO" >> platforms/ios/cordova/build-debug.xcconfig
-          echo "CODE_SIGNING_REQUIRED=NO" >> platforms/ios/cordova/build-debug.xcconfig
-          echo "CODE_SIGN_ENTITLEMENTS=" >> platforms/ios/cordova/build-debug.xcconfig
-          echo "CODE_SIGNING_IDENTITY=" >> platforms/ios/cordova/build-debug.xcconfig
+          cd platforms/ios
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build
 
-      - name: Build Xcode Project
-        run: cordova build ios --debug --device -- --codeSignIdentity="" --developmentTeam="" --packageType="development"
+      - name: Package to IPA Manual
+        run: |
+          mkdir -p Payload
+          cp -r platforms/ios/build/Debug-iphoneos/App.app Payload/
+          zip -r SatanicBooster.ipa Payload
 
-      - name: Upload Artifact
+      - name: Upload Finished IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build-debug
-          path: platforms/ios/build/device/*.ipa
+          name: Satanic-Booster-IPA
+          path: SatanicBooster.ipa
