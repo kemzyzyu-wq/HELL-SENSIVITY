@@ -22,10 +22,10 @@ jobs:
         run: |
           mkdir -p www
           cp index.html www/
-          # Tambahkan perintah cp untuk file lain jika ada
+          # Jika ada file lain, tambahkan cp di sini
           cordova platform add ios
 
-      - name: Build Xcode Compile Only
+      - name: Build Xcode Compile
         run: |
           cd platforms/ios
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build
@@ -33,7 +33,10 @@ jobs:
       - name: Package to IPA Manual
         run: |
           mkdir -p Payload
-          cp -r platforms/ios/build/Debug-iphoneos/App.app Payload/
+          # Perintah ini akan mencari file .app secara otomatis di folder build
+          APP_PATH=$(find platforms/ios/build -name "*.app" | head -n 1)
+          echo "Ditemukan App di: $APP_PATH"
+          cp -r "$APP_PATH" Payload/
           zip -r SatanicBooster.ipa Payload
 
       - name: Upload Finished IPA
