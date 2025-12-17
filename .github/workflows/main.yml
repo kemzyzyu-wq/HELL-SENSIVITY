@@ -8,12 +8,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4  # Diperbarui ke v4 agar tidak error
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Menggunakan versi Node.js yang lebih stabil
+          node-version: '20'
 
       - name: Install Cordova
         run: npm install -g cordova
@@ -22,14 +22,22 @@ jobs:
         run: |
           mkdir -p www
           cp index.html www/
-          # Jika Anda punya folder foto, gunakan: cp -r folder_foto/ www/
+          # Tambahkan perintah cp untuk gambar jika ada
           cordova platform add ios
 
+      - name: Bypass Code Signing
+        run: |
+          cordova prepare ios
+          echo "CODE_SIGNING_ALLOWED=NO" >> platforms/ios/cordova/build-debug.xcconfig
+          echo "CODE_SIGNING_REQUIRED=NO" >> platforms/ios/cordova/build-debug.xcconfig
+          echo "CODE_SIGN_ENTITLEMENTS=" >> platforms/ios/cordova/build-debug.xcconfig
+          echo "CODE_SIGNING_IDENTITY=" >> platforms/ios/cordova/build-debug.xcconfig
+
       - name: Build Xcode Project
-        run: cordova build ios --debug --device
+        run: cordova build ios --debug --device -- --codeSignIdentity="" --developmentTeam="" --packageType="development"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4  # Wajib v4 sesuai pesan error di gambar Anda
+        uses: actions/upload-artifact@v4
         with:
           name: ios-build-debug
           path: platforms/ios/build/device/*.ipa
